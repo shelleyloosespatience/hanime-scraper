@@ -1,10 +1,11 @@
-# 🍑 hanime-scraper
+# 🍑 Hanime-scraper (best hentai site ngl)
 
-A literal website that pulls NSFW content from [Hanime.to](https://hanime.to) and Redgifs via clean proxying and some spicy header tricks. Built entirely to stream and browse anime corn like it's Netflix for degenerates.  
+
+A literal full open source website that pulls NSFW content from [Hanime.to](https://hanime.to) and Redgifs via clean proxying and some spicy header tricks. Built entirely to stream and browse anime corn like it's Netflix for degenerates.  
 You can self-host it on Vercel or any other platform — or just peek the code for the sneaky tricks.
 
-## 💻 By [@me_straight](https://discord.com/users/YOUR_ID_HERE) on Discord  
-> I made this for fun and boredom. If you're tryna commission something nasty or clever — **hit me up**.
+## 💻 By [@me_straight](https://discord.com/@me_Straight) on Discord, Hobbyist dev :3  
+> I made this for fun and boredom. If you're tryna commission something nasty or clever idc, i will do it for fun and **pretty less** price — **hit me up**.
 
 ---
 
@@ -25,20 +26,20 @@ This is for **educational purposes only**. I do not condone piracy or distributi
 
 ---
 
-## 📦 Tech Stack
+## 📦 Tech Stack ( just for an simple outline )
 
 | Frontend | Backend | Hosting | Streaming |
 |----------|---------|---------|-----------|
-| Next.js  | Express | Vercel  | HLS.js    |
+| Next.ts  | Next.ts | Vercel? | HLS.js    |
 
 ---
 
 ## 🧠 How It Works
 
-- Finds Hanime’s open API (no auth)
-- Bypasses CORS using a custom Node.js proxy
-- Spoofs headers to pretend it's a real Firefox user
-- Pipes data cleanly to frontend using Next.js API routes
+- Finds Hanime’s open API
+- Bypasses CORS using our proxy api 
+- Spoofs headers as a user-agent to pretend its a user, not a scraper
+- Pipes data cleanly to frontend using Next.js API fr : ) 
 - Supports streaming `.m3u8` (HLS) videos with controls and previews
 
 ---
