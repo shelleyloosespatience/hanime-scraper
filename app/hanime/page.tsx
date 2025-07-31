@@ -26,6 +26,14 @@ interface Video {
   is_censored?: boolean;
 }
 
+// Add Tag interface after Video interface
+interface Tag {
+  id: string;
+  name: string;
+  slug?: string;
+  [key: string]: any;
+}
+
 // ...existing Tag interface...
 
 // Utility Functions
@@ -96,6 +104,12 @@ export default function HanimePage() {
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const searchInputRef = useRef<HTMLInputElement>(null);
   const [isSearchFocused, setIsSearchFocused] = useState(false);
+  const [searchMode, setSearchMode] = useState<'anime' | 'tag'>('anime');
+  // Remove allTags state and fetching logic
+  // const [allTags, setAllTags] = useState<Tag[]>([]);
+  // useEffect(() => { ... });
+  const [tagSuggestions, setTagSuggestions] = useState<Tag[]>([]);
+  const [selectedTag, setSelectedTag] = useState<Tag | null>(null);
 
   // Auto-scroll featured animes
   useEffect(() => {
@@ -129,6 +143,13 @@ export default function HanimePage() {
   useEffect(() => {
     fetchInitialData();
   }, []);
+
+  // Remove allTags state and fetching logic
+  // useEffect(() => {
+  //   fetch('/api/hanime/tags')
+  //     .then(res => res.json())
+  //     .then(data => setAllTags(data.tags || []));
+  // }, []);
 
   const shuffleArray = (array: any[]) => {
     const shuffled = [...array];
@@ -207,12 +228,50 @@ export default function HanimePage() {
     setLoading(false);
   };
 
+  // Update tag suggestion logic to use the suggest API
+  const handleTagInput = async (query: string) => {
+    setSearchQuery(query);
+    if (!query.trim()) {
+      setTagSuggestions([]);
+      setShowSearchResults(false);
+      return;
+    }
+    try {
+      const res = await fetch(`/api/hanime/tags?query=${encodeURIComponent(query)}`);
+      const data = await res.json();
+      setTagSuggestions(data.tags || []);
+      setShowSearchResults(true);
+    } catch (error) {
+      setTagSuggestions([]);
+      setShowSearchResults(false);
+    }
+  };
+
+  const handleTagSelect = async (tag: Tag) => {
+    setSelectedTag(tag);
+    setSearchQuery(tag.name);
+    setShowSearchResults(false);
+    setLoading(true);
+    try {
+      const res = await fetch(`/api/hanime/tags/${encodeURIComponent(tag.name)}?page=0`);
+      const data = await res.json();
+      setSearchResults(data.results || []);
+      setShowSearchResults(true);
+    } catch (error) {
+      console.error('Error searching by tag:', error);
+    }
+    setLoading(false);
+  };
+
   const handleSearch = async (query: string) => {
+    if (searchMode === 'tag') {
+      handleTagInput(query);
+      return;
+    }
     if (!query.trim()) {
       setShowSearchResults(false);
       return;
     }
-    
     try {
       const res = await fetch(`/api/hanime/search?q=${encodeURIComponent(query)}&page=0`);
       const data = await res.json();
@@ -257,21 +316,6 @@ export default function HanimePage() {
         <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-purple-500 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-blob animation-delay-2000"></div>
         <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-80 h-80 bg-indigo-500 rounded-full mix-blend-multiply filter blur-3xl opacity-10 animate-blob animation-delay-4000"></div>
       </div>
-
-      {/* Header */}
-      <header className="bg-black/40 backdrop-blur-xl sticky top-0 z-40 border-b border-white/10">
-        <div className="max-w-[1920px] mx-auto px-6 py-4">
-          <div className="flex items-center justify-between">
-            <motion.h1 
-              initial={{ opacity: 0, x: -20 }}
-              animate={{ opacity: 1, x: 0 }}
-              className="text-4xl font-bold bg-gradient-to-r from-pink-400 via-purple-400 to-indigo-400 bg-clip-text text-transparent"
-            >
-              Watch Hanime
-            </motion.h1>
-          </div>
-        </div>
-      </header>
 
       {/* Auto-scrolling Featured Section */}
       <section className="relative overflow-hidden py-8 bg-gradient-to-b from-black/20 to-transparent">
@@ -324,10 +368,9 @@ export default function HanimePage() {
                     <div className="flex items-center gap-4 text-sm mt-2">
                       <span className="text-yellow-400 flex items-center gap-1">
                         <span className="text-lg">★</span> 
-                        {(((anime.likes ?? 0) / anime.views) * 5).toFixed(1)}
+                        {calculateRating(anime.views).toFixed(1)}
                       </span>
                       <span className="text-gray-400">👁 {(anime.views / 1000).toFixed(1)}K</span>
-                      <span className="text-gray-400">⏱ {Math.round((anime.duration || 0) / 60000)}min</span>
                     </div>
                   </div>
                 </motion.div>
@@ -346,6 +389,16 @@ export default function HanimePage() {
             transition={{ delay: 0.3 }}
             className="relative"
           >
+            <div className="flex gap-2 mb-2">
+              <button
+                className={`px-4 py-2 rounded-full text-sm font-bold transition-all ${searchMode === 'anime' ? 'bg-pink-500 text-white' : 'bg-white/10 text-gray-300'}`}
+                onClick={() => { setSearchMode('anime'); setSearchQuery(''); setShowSearchResults(false); }}
+              >Anime</button>
+              <button
+                className={`px-4 py-2 rounded-full text-sm font-bold transition-all ${searchMode === 'tag' ? 'bg-purple-500 text-white' : 'bg-white/10 text-gray-300'}`}
+                onClick={() => { setSearchMode('tag'); setSearchQuery(''); setShowSearchResults(false); }}
+              >Tag</button>
+            </div>
             <div className={`relative transition-all duration-300 ${isSearchFocused ? 'scale-105' : ''}`}>
               <input
                 ref={searchInputRef}
@@ -357,13 +410,31 @@ export default function HanimePage() {
                 }}
                 onFocus={() => setIsSearchFocused(true)}
                 onBlur={() => setTimeout(() => setIsSearchFocused(false), 200)}
-                placeholder="🔍 Search for your favorite anime..."
+                placeholder={searchMode === 'tag' ? '🔖 Search by tag...' : '🔍 Search for your favorite anime...'}
                 className="w-full px-8 py-6 text-xl rounded-3xl bg-white/10 backdrop-blur-lg border-2 border-white/20 focus:border-pink-500 outline-none text-white placeholder-gray-400 transition-all"
               />
               <div className="absolute inset-0 rounded-3xl bg-gradient-to-r from-pink-500/20 to-purple-500/20 blur-xl -z-10 opacity-0 group-focus-within:opacity-100 transition-opacity"></div>
             </div>
-
             <AnimatePresence>
+              {searchMode === 'tag' && tagSuggestions.length > 0 && isSearchFocused && (
+                <motion.div
+                  initial={{ opacity: 0, y: -10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -10 }}
+                  className="absolute top-full left-0 right-0 mt-4 bg-black/90 backdrop-blur-xl rounded-2xl border border-white/20 max-h-96 overflow-y-auto z-50"
+                >
+                  {tagSuggestions.map((tag, idx) => (
+                    <div
+                      key={tag.id || tag.name || idx}
+                      onClick={() => handleTagSelect(tag)}
+                      className="flex items-center gap-4 p-4 hover:bg-white/10 cursor-pointer transition-colors"
+                    >
+                      <span className="text-purple-400 font-bold">#</span>
+                      <span className="text-white font-semibold line-clamp-1">{tag.name}</span>
+                    </div>
+                  ))}
+                </motion.div>
+              )}
               {showSearchResults && searchResults.length > 0 && (
                 <motion.div
                   initial={{ opacity: 0, y: -10 }}
@@ -387,7 +458,7 @@ export default function HanimePage() {
                       />
                       <div className="flex-1">
                         <h4 className="text-white font-semibold line-clamp-1">{result.name}</h4>
-                        <p className="text-sm text-gray-400">{result.brand} • {(result.views / 1000).toFixed(1)}K views</p>
+                        <p className="text-sm text-gray-400">{result.brand} • <span className="text-yellow-400">★ {calculateRating(result.views).toFixed(1)}</span> • {(result.views / 1000).toFixed(1)}K views</p>
                       </div>
                     </div>
                   ))}

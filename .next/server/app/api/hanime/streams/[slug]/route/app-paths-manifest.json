@@ -1,0 +1,3 @@
+{
+  "/api/hanime/streams/[slug]/route": "app/api/hanime/streams/[slug]/route.js"
+}

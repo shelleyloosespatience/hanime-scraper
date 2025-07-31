@@ -1,0 +1,3 @@
+{
+  "/api/hanime/tags/[tag]/route": "app/api/hanime/tags/[tag]/route.js"
+}
