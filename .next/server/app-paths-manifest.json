@@ -1,12 +1,7 @@
 {
-  "/api/hanime/proxy/route": "app/api/hanime/proxy/route.js",
-  "/api/hanime/search/route": "app/api/hanime/search/route.js",
-  "/api/hanime/streams/[slug]/route": "app/api/hanime/streams/[slug]/route.js",
   "/api/hanime/tags/[tag]/route": "app/api/hanime/tags/[tag]/route.js",
   "/api/hanime/tags/route": "app/api/hanime/tags/route.js",
   "/api/hanime/trending/route": "app/api/hanime/trending/route.js",
-  "/api/hanime/video/[slug]/route": "app/api/hanime/video/[slug]/route.js",
   "/favicon.ico/route": "app/favicon.ico/route.js",
-  "/hanime/page": "app/hanime/page.js",
-  "/hanime/watch/[slug]/page": "app/hanime/watch/[slug]/page.js"
+  "/hanime/page": "app/hanime/page.js"
 }

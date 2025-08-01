@@ -1,4 +1,4 @@
-// app/hanime/page.tsx - Enhanced homepage with more content and animations
+// app/hanime/page.tsx - Fixed version with proper tag functionality
 'use client';
 
 import { useState, useEffect, useRef, useCallback } from 'react';
@@ -9,6 +9,46 @@ import { motion, AnimatePresence } from 'framer-motion';
 const CustomArrowSVG = () => (
   <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
     <path d="M13.5 7.5L18 12L13.5 16.5M18 12H6" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/>
+  </svg>
+);
+
+const TrendingIcon = () => (
+  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z" fill="currentColor"/>
+  </svg>
+);
+
+const NewIcon = () => (
+  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" fill="currentColor"/>
+  </svg>
+);
+
+const DiscoverIcon = () => (
+  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <rect x="3" y="3" width="18" height="18" rx="2" ry="2" stroke="currentColor" strokeWidth="2" fill="none"/>
+    <circle cx="9" cy="9" r="2" fill="currentColor"/>
+    <path d="M21 15l-3.086-3.086a2 2 0 0 0-2.828 0L6 21" stroke="currentColor" strokeWidth="2"/>
+  </svg>
+);
+
+const FeaturedIcon = () => (
+  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <polygon points="12,2 15.09,8.26 22,9.27 17,14.14 18.18,21.02 12,17.77 5.82,21.02 7,14.14 2,9.27 8.91,8.26" fill="currentColor"/>
+  </svg>
+);
+
+const SearchIcon = () => (
+  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <circle cx="11" cy="11" r="8" stroke="currentColor" strokeWidth="2"/>
+    <path d="m21 21-4.35-4.35" stroke="currentColor" strokeWidth="2"/>
+  </svg>
+);
+
+const TagIcon = () => (
+  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z" stroke="currentColor" strokeWidth="2" fill="none"/>
+    <line x1="7" y1="7" x2="7.01" y2="7" stroke="currentColor" strokeWidth="2"/>
   </svg>
 );
 
@@ -26,7 +66,12 @@ interface Video {
   is_censored?: boolean;
 }
 
-// ...existing Tag interface...
+interface Tag {
+  id: string;
+  name: string;
+  slug?: string;
+  [key: string]: any;
+}
 
 // Utility Functions
 const calculateRating = (views: number): number => {
@@ -37,11 +82,9 @@ const calculateRating = (views: number): number => {
   return 3.5 + Math.random() * 1.0;
 };
 
-// ...add other utility functions as provided...
-
-const SectionHeader = ({ title, icon, onViewAll, showViewAll = true }: { 
+const SectionHeader = ({ title, icon: IconComponent, onViewAll, showViewAll = true }: { 
   title: string; 
-  icon: string; 
+  icon: React.ComponentType; 
   onViewAll?: () => void;
   showViewAll?: boolean;
 }) => (
@@ -52,7 +95,10 @@ const SectionHeader = ({ title, icon, onViewAll, showViewAll = true }: {
       transition={{ delay: 0.4 }}
       className="text-3xl font-bold text-white flex items-center gap-3"
     >
-      <span className="animate-bounce">{icon}</span> {title}
+      <span className="animate-bounce text-pink-400">
+        <IconComponent />
+      </span> 
+      {title}
     </motion.h2>
     
     {showViewAll && (
@@ -80,6 +126,35 @@ const LoadingSkeleton = () => (
   </div>
 );
 
+// Pagination Component
+const Pagination = ({ currentPage, totalPages, onPageChange }: {
+  currentPage: number;
+  totalPages: number;
+  onPageChange: (page: number) => void;
+}) => (
+  <div className="flex justify-center items-center gap-2 mt-8">
+    <button
+      onClick={() => onPageChange(Math.max(0, currentPage - 1))}
+      disabled={currentPage === 0}
+      className="px-4 py-2 rounded-lg bg-white/10 text-white disabled:opacity-50 disabled:cursor-not-allowed hover:bg-white/20 transition-all"
+    >
+      Previous
+    </button>
+    
+    <span className="px-4 py-2 text-white">
+      Page {currentPage + 1} of {totalPages}
+    </span>
+    
+    <button
+      onClick={() => onPageChange(Math.min(totalPages - 1, currentPage + 1))}
+      disabled={currentPage >= totalPages - 1}
+      className="px-4 py-2 rounded-lg bg-white/10 text-white disabled:opacity-50 disabled:cursor-not-allowed hover:bg-white/20 transition-all"
+    >
+      Next
+    </button>
+  </div>
+);
+
 export default function HanimePage() {
   const router = useRouter();
   const [featuredAnimes, setFeaturedAnimes] = useState<Video[]>([]);
@@ -96,6 +171,16 @@ export default function HanimePage() {
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const searchInputRef = useRef<HTMLInputElement>(null);
   const [isSearchFocused, setIsSearchFocused] = useState(false);
+  const [searchMode, setSearchMode] = useState<'anime' | 'tag'>('anime');
+  const [tagSuggestions, setTagSuggestions] = useState<Tag[]>([]);
+  const [selectedTag, setSelectedTag] = useState<Tag | null>(null);
+  
+  // NEW: Tag-specific states
+  const [showTagSection, setShowTagSection] = useState(false);
+  const [tagSectionVideos, setTagSectionVideos] = useState<Video[]>([]);
+  const [tagCurrentPage, setTagCurrentPage] = useState(0);
+  const [tagTotalPages, setTagTotalPages] = useState(0);
+  const [tagLoading, setTagLoading] = useState(false);
 
   // Auto-scroll featured animes
   useEffect(() => {
@@ -207,9 +292,11 @@ export default function HanimePage() {
     setLoading(false);
   };
 
-  const handleSearch = async (query: string) => {
+  // FIXED: Separate handlers for anime and tag search
+  const handleAnimeSearch = async (query: string) => {
     if (!query.trim()) {
       setShowSearchResults(false);
+      setSearchResults([]);
       return;
     }
     
@@ -219,7 +306,62 @@ export default function HanimePage() {
       setSearchResults(data.results || []);
       setShowSearchResults(true);
     } catch (error) {
-      console.error('Error searching:', error);
+      console.error('Error searching anime:', error);
+      setSearchResults([]);
+      setShowSearchResults(false);
+    }
+  };
+
+  const handleTagSearch = async (query: string) => {
+    if (!query.trim()) {
+      setTagSuggestions([]);
+      return;
+    }
+    
+    try {
+      const res = await fetch(`/api/hanime/tags?query=${encodeURIComponent(query)}`);
+      const data = await res.json();
+      setTagSuggestions(data.tags || []);
+    } catch (error) {
+      console.error('Error searching tags:', error);
+      setTagSuggestions([]);
+    }
+  };
+
+  // FIXED: Proper tag selection handler
+  const handleTagSelect = async (tag: Tag) => {
+    setSelectedTag(tag);
+    setSearchQuery(tag.name);
+    setTagSuggestions([]);
+    setShowSearchResults(false);
+    setIsSearchFocused(false);
+    
+    // Hide other sections and show tag section
+    setShowTagSection(true);
+    setTagCurrentPage(0);
+    await fetchTagVideos(tag.name, 0);
+  };
+
+  const fetchTagVideos = async (tagName: string, page: number) => {
+    setTagLoading(true);
+    try {
+      const res = await fetch(`/api/hanime/tags/${encodeURIComponent(tagName)}?page=${page}`);
+      const data = await res.json();
+      
+      setTagSectionVideos(data.results || []);
+      // Assuming 20 items per page, calculate total pages
+      setTagTotalPages(Math.ceil((data.total || 100) / 20));
+    } catch (error) {
+      console.error('Error fetching tag videos:', error);
+      setTagSectionVideos([]);
+    }
+    setTagLoading(false);
+  };
+
+  const handleTagPageChange = (page: number) => {
+    if (selectedTag) {
+      setTagCurrentPage(page);
+      fetchTagVideos(selectedTag.name, page);
     }
   };
 
@@ -241,6 +383,17 @@ export default function HanimePage() {
     }
   };
 
+  // FIXED: Clear tag section when switching modes
+  const handleSearchModeChange = (mode: 'anime' | 'tag') => {
+    setSearchMode(mode);
+    setSearchQuery('');
+    setShowSearchResults(false);
+    setTagSuggestions([]);
+    setSelectedTag(null);
+    setShowTagSection(false);
+    setSearchResults([]);
+  };
+
   const timeframeOptions = [
     { value: 'day', label: 'Today', icon: '🌅' },
     { value: 'week', label: 'This Week', icon: '📅' },
@@ -258,21 +411,6 @@ export default function HanimePage() {
         <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-80 h-80 bg-indigo-500 rounded-full mix-blend-multiply filter blur-3xl opacity-10 animate-blob animation-delay-4000"></div>
       </div>
 
-      {/* Header */}
-      <header className="bg-black/40 backdrop-blur-xl sticky top-0 z-40 border-b border-white/10">
-        <div className="max-w-[1920px] mx-auto px-6 py-4">
-          <div className="flex items-center justify-between">
-            <motion.h1 
-              initial={{ opacity: 0, x: -20 }}
-              animate={{ opacity: 1, x: 0 }}
-              className="text-4xl font-bold bg-gradient-to-r from-pink-400 via-purple-400 to-indigo-400 bg-clip-text text-transparent"
-            >
-              Watch Hanime
-            </motion.h1>
-          </div>
-        </div>
-      </header>
-
       {/* Auto-scrolling Featured Section */}
       <section className="relative overflow-hidden py-8 bg-gradient-to-b from-black/20 to-transparent">
         <div className="max-w-[1920px] mx-auto px-6">
@@ -282,7 +420,10 @@ export default function HanimePage() {
             transition={{ delay: 0.2 }}
             className="text-3xl font-bold text-white mb-6 flex items-center gap-3"
           >
-            <span className="animate-pulse">✨</span> Featured Anime
+            <span className="animate-pulse text-yellow-400">
+              <FeaturedIcon />
+            </span> 
+            Featured Anime
           </motion.h2>
           
           <div className="relative">
@@ -324,10 +465,9 @@ export default function HanimePage() {
                     <div className="flex items-center gap-4 text-sm mt-2">
                       <span className="text-yellow-400 flex items-center gap-1">
                         <span className="text-lg">★</span> 
-                        {(((anime.likes ?? 0) / anime.views) * 5).toFixed(1)}
+                        {calculateRating(anime.views).toFixed(1)}
                       </span>
                       <span className="text-gray-400">👁 {(anime.views / 1000).toFixed(1)}K</span>
-                      <span className="text-gray-400">⏱ {Math.round((anime.duration || 0) / 60000)}min</span>
                     </div>
                   </div>
                 </motion.div>
@@ -337,7 +477,7 @@ export default function HanimePage() {
         </div>
       </section>
 
-      {/* Big Search Section */}
+      {/* FIXED: Big Search Section */}
       <section className="py-12 relative">
         <div className="max-w-4xl mx-auto px-6">
           <motion.div
@@ -346,6 +486,23 @@ export default function HanimePage() {
             transition={{ delay: 0.3 }}
             className="relative"
           >
+            <div className="flex gap-2 mb-2">
+              <button
+                className={`px-4 py-2 rounded-full text-sm font-bold transition-all flex items-center gap-2 ${searchMode === 'anime' ? 'bg-pink-500 text-white' : 'bg-white/10 text-gray-300'}`}
+                onClick={() => handleSearchModeChange('anime')}
+              >
+                <SearchIcon />
+                Anime
+              </button>
+              <button
+                className={`px-4 py-2 rounded-full text-sm font-bold transition-all flex items-center gap-2 ${searchMode === 'tag' ? 'bg-purple-500 text-white' : 'bg-white/10 text-gray-300'}`}
+                onClick={() => handleSearchModeChange('tag')}
+              >
+                <TagIcon />
+                Tag
+              </button>
+            </div>
+            
             <div className={`relative transition-all duration-300 ${isSearchFocused ? 'scale-105' : ''}`}>
               <input
                 ref={searchInputRef}
@@ -353,18 +510,45 @@ export default function HanimePage() {
                 value={searchQuery}
                 onChange={(e) => {
                   setSearchQuery(e.target.value);
-                  handleSearch(e.target.value);
+                  if (searchMode === 'anime') {
+                    handleAnimeSearch(e.target.value);
+                  } else {
+                    handleTagSearch(e.target.value);
+                  }
                 }}
                 onFocus={() => setIsSearchFocused(true)}
                 onBlur={() => setTimeout(() => setIsSearchFocused(false), 200)}
-                placeholder="🔍 Search for your favorite anime..."
+                placeholder={searchMode === 'tag' ? 'Search by tag...' : 'Search for your favorite anime...'}
                 className="w-full px-8 py-6 text-xl rounded-3xl bg-white/10 backdrop-blur-lg border-2 border-white/20 focus:border-pink-500 outline-none text-white placeholder-gray-400 transition-all"
               />
               <div className="absolute inset-0 rounded-3xl bg-gradient-to-r from-pink-500/20 to-purple-500/20 blur-xl -z-10 opacity-0 group-focus-within:opacity-100 transition-opacity"></div>
             </div>
-
+            
+            {/* FIXED: Separate dropdowns for anime and tag search */}
             <AnimatePresence>
-              {showSearchResults && searchResults.length > 0 && (
+              {searchMode === 'tag' && tagSuggestions.length > 0 && isSearchFocused && (
+                <motion.div
+                  initial={{ opacity: 0, y: -10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -10 }}
+                  className="absolute top-full left-0 right-0 mt-4 bg-black/90 backdrop-blur-xl rounded-2xl border border-white/20 max-h-96 overflow-y-auto z-50"
+                >
+                  {tagSuggestions.map((tag) => (
+                    <div
+                      key={tag.name}
+                      onClick={() => handleTagSelect(tag)}
+                      className="flex items-center gap-4 p-4 hover:bg-white/10 cursor-pointer transition-colors"
+                    >
+                      <span className="text-purple-400 font-bold">
+                        <TagIcon />
+                      </span>
+                      <span className="text-white font-semibold line-clamp-1">{tag.name}</span>
+                    </div>
+                  ))}
+                </motion.div>
+              )}
+              
+              {searchMode === 'anime' && showSearchResults && searchResults.length > 0 && (
                 <motion.div
                   initial={{ opacity: 0, y: -10 }}
                   animate={{ opacity: 1, y: 0 }}
@@ -377,6 +561,7 @@ export default function HanimePage() {
                       onClick={() => {
                         handleVideoClick(result.slug);
                         setShowSearchResults(false);
+                        setIsSearchFocused(false);
                       }}
                       className="flex items-center gap-4 p-4 hover:bg-white/10 cursor-pointer transition-colors"
                     >
@@ -387,7 +572,7 @@ export default function HanimePage() {
                       />
                       <div className="flex-1">
                         <h4 className="text-white font-semibold line-clamp-1">{result.name}</h4>
-                        <p className="text-sm text-gray-400">{result.brand} • {(result.views / 1000).toFixed(1)}K views</p>
+                        <p className="text-sm text-gray-400">{result.brand} • <span className="text-yellow-400">★ {calculateRating(result.views).toFixed(1)}</span> • {(result.views / 1000).toFixed(1)}K views</p>
                       </div>
                     </div>
                   ))}
@@ -399,103 +584,170 @@ export default function HanimePage() {
       </section>
 
       <main className="max-w-[1920px] mx-auto px-6 pb-20">
-        {/* Trending Section */}
-        <section className="mb-24">
-          <SectionHeader title="Trending Anime" icon="🔥" onViewAll={handleViewAllTrending} />
-          
-          {loading ? (
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 2xl:grid-cols-8 gap-4 sm:gap-6">
-              {[...Array(8)].map((_, i) => (
-                <LoadingSkeleton key={i} />
-              ))}
-            </div>
-          ) : (
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 2xl:grid-cols-8 gap-4 sm:gap-6">
-              {trendingVideos.map((video, index) => (
-                <motion.div
-                  key={`trending-${video.id}-${index}`}
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: index * 0.02 }}
-                >
-                  <VideoCard video={video} onClick={() => handleVideoClick(video.slug)} />
-                </motion.div>
-              ))}
-            </div>
-          )}
-        </section>
-
-        {/* New Releases Section */}
-        <section className="mb-16">
-          <SectionHeader 
-            title="New Releases" 
-            icon="🆕" 
-            onViewAll={handleViewAllNew}
-          />
-          
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 2xl:grid-cols-8 gap-4 sm:gap-6">
-            {newVideos.map((video, index) => (
-              <motion.div
-                key={`new-${video.id}-${index}`}
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.5 + index * 0.02 }}
+        {/* NEW: Tag Results Section - Shows when a tag is selected */}
+        {showTagSection && selectedTag && (
+          <section className="mb-24">
+            <div className="flex items-center justify-between mb-8">
+              <motion.h2 
+                initial={{ opacity: 0, x: -20 }}
+                animate={{ opacity: 1, x: 0 }}
+                className="text-3xl font-bold text-white flex items-center gap-3"
               >
-                <VideoCard video={video} onClick={() => handleVideoClick(video.slug)} isNew />
-              </motion.div>
-            ))}
-          </div>
-        </section>
-
-        {/* Random Tag Section */}
-        {randomTag && randomTagVideos.length > 0 && (
-          <section>
-            <motion.h2 
-              initial={{ opacity: 0, x: -20 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ delay: 0.6 }}
-              className="text-3xl font-bold text-white mb-8 flex items-center gap-3"
-            >
-              <span>🎲</span> Discover: 
-              <span className="text-transparent bg-clip-text bg-gradient-to-r from-pink-400 to-purple-400">
-                {randomTag}
-              </span>
-            </motion.h2>
-            
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 2xl:grid-cols-8 gap-4 sm:gap-6">
-              {randomTagVideos.map((video, index) => (
-                <motion.div
-                  key={`tag-${video.id}`}
-                  initial={{ opacity: 0, scale: 0.9 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  transition={{ delay: 0.6 + index * 0.03 }}
-                >
-                  <VideoCard video={video} onClick={() => handleVideoClick(video.slug)} />
-                </motion.div>
-              ))}
+                <span className="text-purple-400">
+                  <TagIcon />
+                </span>
+                Results for: 
+                <span className="text-transparent bg-clip-text bg-gradient-to-r from-pink-400 to-purple-400">
+                  {selectedTag.name}
+                </span>
+              </motion.h2>
+              
+              <button
+                onClick={() => setShowTagSection(false)}
+                className="px-4 py-2 rounded-2xl font-medium bg-red-500/20 text-red-400 hover:bg-red-500/30 transition-all"
+              >
+                Close
+              </button>
             </div>
+            
+            {tagLoading ? (
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 2xl:grid-cols-8 gap-4 sm:gap-6">
+                {[...Array(20)].map((_, i) => (
+                  <LoadingSkeleton key={i} />
+                ))}
+              </div>
+            ) : (
+              <>
+                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 2xl:grid-cols-8 gap-4 sm:gap-6">
+                  {tagSectionVideos.map((video, index) => (
+                    <motion.div
+                      key={`tag-result-${video.id}`}
+                      initial={{ opacity: 0, y: 20 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: index * 0.02 }}
+                    >
+                      <VideoCard video={video} onClick={() => handleVideoClick(video.slug)} />
+                    </motion.div>
+                  ))}
+                </div>
+                
+                {tagTotalPages > 1 && (
+                  <Pagination
+                    currentPage={tagCurrentPage}
+                    totalPages={tagTotalPages}
+                    onPageChange={handleTagPageChange}
+                  />
+                )}
+              </>
+            )}
           </section>
+        )}
+
+        {/* Only show other sections when tag section is not active */}
+        {!showTagSection && (
+          <>
+            {/* Trending Section */}
+            <section className="mb-24">
+              <SectionHeader title="Trending Anime" icon={TrendingIcon} onViewAll={handleViewAllTrending} />
+              
+              {loading ? (
+                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 2xl:grid-cols-8 gap-4 sm:gap-6">
+                  {[...Array(8)].map((_, i) => (
+                    <LoadingSkeleton key={i} />
+                  ))}
+                </div>
+              ) : (
+                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 2xl:grid-cols-8 gap-4 sm:gap-6">
+                  {trendingVideos.map((video, index) => (
+                    <motion.div
+                      key={`trending-${video.id}-${index}`}
+                      initial={{ opacity: 0, y: 20 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: index * 0.02 }}
+                    >
+                      <VideoCard video={video} onClick={() => handleVideoClick(video.slug)} />
+                    </motion.div>
+                  ))}
+                </div>
+              )}
+            </section>
+
+            {/* New Releases Section */}
+            <section className="mb-16">
+              <SectionHeader 
+                title="New Releases" 
+                icon={NewIcon} 
+                onViewAll={handleViewAllNew}
+              />
+              
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 2xl:grid-cols-8 gap-4 sm:gap-6">
+                {newVideos.map((video, index) => (
+                  <motion.div
+                    key={`new-${video.id}-${index}`}
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.5 + index * 0.02 }}
+                  >
+                    <VideoCard video={video} onClick={() => handleVideoClick(video.slug)} isNew />
+                  </motion.div>
+                ))}
+              </div>
+            </section>
+
+            {/* Random Tag Section */}
+            {randomTag && randomTagVideos.length > 0 && (
+              <section>
+                <motion.h2 
+                  initial={{ opacity: 0, x: -20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ delay: 0.6 }}
+                  className="text-3xl font-bold text-white mb-8 flex items-center gap-3"
+                >
+                  <span className="text-green-400">
+                    <DiscoverIcon />
+                  </span> 
+                  Discover: 
+                  <span className="text-transparent bg-clip-text bg-gradient-to-r from-pink-400 to-purple-400">
+                    {randomTag}
+                  </span>
+                </motion.h2>
+                
+                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 2xl:grid-cols-8 gap-4 sm:gap-6">
+                  {randomTagVideos.map((video, index) => (
+                    <motion.div
+                      key={`tag-${video.id}`}
+                      initial={{ opacity: 0, scale: 0.9 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      transition={{ delay: 0.6 + index * 0.03 }}
+                    >
+                      <VideoCard video={video} onClick={() => handleVideoClick(video.slug)} />
+                    </motion.div>
+                  ))}
+                </div>
+              </section>
+            )}
+          </>
         )}
       </main>
     </div>
   );
 }
 
-// Replace existing VideoCard with new enhanced version
+// Enhanced VideoCard with better mobile optimization
 function VideoCard({ video, onClick, isNew = false }: { video: Video; onClick: () => void; isNew?: boolean }) {
   const [imageLoaded, setImageLoaded] = useState(false);
   const rating = calculateRating(video.views);
   
   return (
     <motion.div
-      whileHover={{ y: -4, scale: 1.02 }} // Even smaller hover lift
+      whileHover={{ y: -4, scale: 1.02 }}
       whileTap={{ scale: 0.98 }}
       onClick={onClick}
       className="cursor-pointer group relative"
     >
       <div 
         className="relative overflow-hidden rounded-xl bg-gradient-to-br from-gray-900 to-gray-800 shadow-lg hover:shadow-pink-500/20 transition-all duration-500"
-        style={{ aspectRatio: '2/3' }} // Even shorter ratio for better mobile display
+        style={{ aspectRatio: '2/3' }}
       >
         {!imageLoaded && (
           <div className="absolute inset-0 animate-pulse bg-gradient-to-br from-gray-800 to-gray-700"></div>
@@ -533,18 +785,18 @@ function VideoCard({ video, onClick, isNew = false }: { video: Video; onClick: (
           )}
         </div>
         
-        <div className="absolute top-2 right-2"> {/* Repositioned to corner */}
+        <div className="absolute top-2 right-2">
           <span className="bg-black/40 backdrop-blur-sm text-gray-300 px-2 py-1 rounded-md text-xs font-medium">
             HD
           </span>
         </div>
       </div>
       
-      <div className="mt-2 px-1"> {/* Even smaller margins */}
+      <div className="mt-2 px-1">
         <h3 className="font-bold text-white text-sm sm:text-base line-clamp-2 group-hover:text-transparent group-hover:bg-clip-text group-hover:bg-gradient-to-r group-hover:from-pink-400 group-hover:to-purple-400 transition-all">
           {video.name}
         </h3>
-        <div className="flex items-center justify-between mt-1 text-xs sm:text-sm"> {/* Smaller text */}
+        <div className="flex items-center justify-between mt-1 text-xs sm:text-sm">
           <span className="text-yellow-400 flex items-center gap-0.5">
             <span>★</span>
             {rating.toFixed(1)}
