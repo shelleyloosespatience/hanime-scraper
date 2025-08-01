@@ -1,6 +1,6 @@
 # 🍑 Hanime-scraper (best hentai site ngl)
 
-
+( This includes the api functions for scraping content from api on demand and is not a standalone scraper but rather a site page )
 A literal full open source website that pulls NSFW content from [Hanime.to](https://hanime.to) and Redgifs via clean proxying and some spicy header tricks. Built entirely to stream and browse anime corn like it's Netflix for degenerates.  
 You can self-host it on Vercel or any other platform — or just peek the code for the sneaky tricks.
 
@@ -10,11 +10,11 @@ You can self-host it on Vercel or any other platform — or just peek the code f
 ---
 
 ## ✅ Features
-- Clean UI (Tailwind, Next.js)
+- Clean UI (Tailwind, Next.ts)
 - HLS streaming with auto quality (no lag BS)
 - Full metadata + search support
 - Scrapes Hanime API directly
-- Bypasses CORS like a ninja
+- Bypasses CORS by proxying simply with fake user-agent header :)
 - No captcha, no popups, no interruptions  
 - Works from Vercel with 0 backend setup stress
 
