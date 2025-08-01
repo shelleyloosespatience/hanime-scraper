@@ -133,15 +133,6 @@ export default function WatchPage() {
     }
   }, []);
 
-  // Add calculateRating utility
-  const calculateRating = (views: number): number => {
-    if (views > 10000000) return 4.8 + Math.random() * 0.2;
-    if (views > 5000000) return 4.5 + Math.random() * 0.4;
-    if (views > 1000000) return 4.0 + Math.random() * 0.6;
-    if (views > 500000) return 3.8 + Math.random() * 0.7;
-    return 3.5 + Math.random() * 1.0;
-  };
-
   if (loading) {
     return (
       <div className="min-h-screen bg-black flex items-center justify-center">
@@ -227,7 +218,7 @@ export default function WatchPage() {
 
                 {/* Video Info */}
                 <div className="bg-gray-900/50 backdrop-blur rounded-xl p-6">
-                  <div className="grid grid-cols-2 md:grid-cols-3 gap-6 mb-6">
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-6 mb-6">
                     <div>
                       <p className="text-gray-400 text-sm mb-1">Views</p>
                       <p className="text-2xl font-bold text-white">{video.views?.toLocaleString()}</p>
@@ -239,7 +230,13 @@ export default function WatchPage() {
                     <div>
                       <p className="text-gray-400 text-sm mb-1">Rating</p>
                       <p className="text-2xl font-bold text-yellow-400">
-                        ★ {calculateRating(video.views).toFixed(1)}
+                        ★ {((video.likes / video.views) * 5).toFixed(1)}
+                      </p>
+                    </div>
+                    <div>
+                      <p className="text-gray-400 text-sm mb-1">Duration</p>
+                      <p className="text-2xl font-bold text-white">
+                        {Math.round((video.duration || 0) / 60000)} min
                       </p>
                     </div>
                   </div>
@@ -308,30 +305,23 @@ export default function WatchPage() {
             {relatedVideos.length > 0 && (
               <div className="bg-gray-900/50 backdrop-blur rounded-xl p-4">
                 <h3 className="text-white font-semibold mb-4">More from {video?.brand}</h3>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="grid grid-cols-2 gap-3">
                   {relatedVideos.slice(0, 6).map((related: any) => (
                     <div
                       key={related.id}
                       onClick={() => router.push(`/hanime/watch/${related.slug}`)}
                       className="cursor-pointer group"
                     >
-                      <div className="aspect-[3/2] rounded-xl overflow-hidden mb-2 shadow-lg">
+                      <div className="aspect-[3/4] rounded-lg overflow-hidden mb-2">
                         <img 
                           src={related.cover_url || related.poster_url}
                           alt={related.name}
                           className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
                         />
                       </div>
-                      <div className="flex items-center justify-between mb-1">
-                        <span className="text-yellow-400 font-bold flex items-center gap-1 text-sm">
-                          <span>★</span> {calculateRating(related.views).toFixed(1)}
-                        </span>
-                        <span className="text-gray-400 text-xs">{(related.views / 1000).toFixed(1)}K</span>
-                      </div>
-                      <p className="text-sm text-white line-clamp-2 group-hover:text-pink-400 transition-colors font-semibold">
+                      <p className="text-xs text-white line-clamp-2 group-hover:text-pink-400 transition-colors">
                         {related.name}
                       </p>
-                      <p className="text-xs text-purple-400 font-bold mt-0.5">{related.brand}</p>
                     </div>
                   ))}
                 </div>
