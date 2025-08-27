@@ -1,4 +1,4 @@
-# 🍑 Hanime-scraper (best hentai site ngl)
+# 🍑 Hanime-scraper (for people who have sites blocked on thier network)
 
 ( This includes the api functions for scraping content from api on demand and is not a standalone scraper but rather a site page )
 A literal full open source website that pulls NSFW content from [Hanime.to](https://hanime.to) and Redgifs via clean proxying and some spicy header tricks. Built entirely to stream and browse anime corn like it's Netflix for degenerates.  
@@ -90,7 +90,7 @@ Just run locally, it takes like 60 seconds.
 
 ---
 
-> “I just wanted a smooth fap experience, so I built one.”
+> “I just wanted a smooth fap experience for my gooner friends- so I built one.”
 > — `@me_straight` on Discord LOL- contact for any kind of work im down bad for money frfr :3
 
 ```
